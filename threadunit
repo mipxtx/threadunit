@@ -2,15 +2,6 @@
 <?php
 namespace ThreadUnit;
 
-
-spl_autoload_register(
-    function ($className) {
-        $className = str_replace("ThreadUnit\\", "", $className);
-        $file = __DIR__ . "/lib/" . str_replace("_", DIRECTORY_SEPARATOR, $className) . ".php";
-        require $file;
-    }
-);
-
 $time = microtime(1);
 try {
     $app = new ThreadUnit($argv);
