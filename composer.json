@@ -17,7 +17,7 @@
     },
     "require": {
         "php": ">=5.3.3",
-        "phpunit": ">=3.7"
+        "phpunit/phpunit": ">=3.7"
     },
     "bin": [
         "threadunit"
