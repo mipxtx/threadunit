@@ -1,10 +1,11 @@
 #!/usr/bin/env php
 <?php
-namespace ThreadUnit;
+
+require __DIR__ . "/../../autoload.php";
 
 $time = microtime(1);
 try {
-    $app = new ThreadUnit($argv);
+    $app = new \ThreadUnit\ThreadUnit($argv);
     $exitCode = $app->run();
 } catch (Exception $e) {
     echo $e->getMessage() . "\n";
