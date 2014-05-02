@@ -18,6 +18,8 @@ class ThreadUnit
 
     private $listArgs;
 
+    const VERSION = "0.1";
+
     /**
      * @var Params
      */
@@ -37,6 +39,9 @@ class ThreadUnit
         $currentKey = "";
         foreach ($this->rawArgs as $arg) {
             if ($arg[0] == "-") {
+                if ($currentKey) {
+                    $this->namedArgs[$currentKey] = "";
+                }
                 if ($arg[1] == "-") {
                     if (strpos($arg, "=")) {
                         list($currentKey, $value) = explode("=", $arg);
@@ -48,37 +53,49 @@ class ThreadUnit
                     $currentKey = mb_strcut($arg, 0, 2);
                     $value = mb_strcut($arg, 2);
                     $this->namedArgs[$currentKey] = $value;
+                    $currentKey = "";
                 }
             } else {
                 if ($currentKey) {
                     $this->namedArgs[$currentKey] = $arg;
+                    $currentKey = "";
                 } else {
                     $this->listArgs[] = $arg;
                 }
             }
         }
+        if ($currentKey) {
+            $this->namedArgs[$currentKey] = "";
+        }
     }
 
     public function run() {
 
+        echo "ThreadUnit v" . self::VERSION . " by Michail Buylov. ";
+        echo "A multithread wrapper of\n";
+
+        exec("phpunit --version", $out, $exitCode);
+        if ($exitCode) {
+            throw new Exception("phpunit not found");
+        }
+
+        echo trim(implode("\n", $out)) . "\n";
+        if ($this->params->needHelp()) {
+            $this->params->displayHelp();
+
+            return 0;
+        }
+
         $testMap = new TestMap($this->params);
         $tests = $testMap->getWorkers();
-
         $tests->prepare();
-
-
-
-        do{
+        do {
             $tests->tic();
-        }while(!$tests->done());
-
-
+        } while (!$tests->done());
         $pidCount = count($tests);
-
         $log = $testMap->getLogBuilder();
         $logPath = $this->params->getJlog();
         if ($logPath) {
-
             $log->save($logPath);
         }
         $log->echoStatus($pidCount);
@@ -90,7 +107,7 @@ class ThreadUnit
         do {
             $str = "";
             for ($i = 0; $i < 10; $i++) {
-                $str .= ('a' + mt_rand(0, 26));
+                $str .= chr(ord('a') + mt_rand(0, 26));
             }
             $path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $str;
             if (!file_exists($path)) {

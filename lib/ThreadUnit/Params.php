@@ -15,130 +15,234 @@ class Params
     private $params = [];
 
     /**
-     * @var \DOMDocument
+     * @var \DOMDocument|bool
      */
     private $config;
 
+    /**
+     * @var string
+     */
     private $root;
 
+    /**
+     * @var string
+     */
+    private $configPath;
+
+    const HELP = "help";
+
+    const CONFIG = "config";
+
+    const THREADS = "threads";
+
+    const FILESINTHREAD = "files_in_thread";
+
+    const SUITE = "testsuite";
+
+    const FILE = "file";
+
+    const OLDLOG = "log";
+
+    const LOGJUNIT = "log_junit";
+
+    const OPTIONS = "options";
+
+    const DEBUG = "debug";
+
+    const TMPDIR = "tmpdir";
+
+    private $args = [
+        self::HELP => ["-h", "--help"],
+        self::CONFIG => ["-c", "--configuration"],
+        self::THREADS => ["-t", "--threads", "threads"],
+        self::FILESINTHREAD => ["-f", "--files-per-thread", "files-per-thread"],
+        self::SUITE => ["--testsuite"],
+        self::FILE => ["--file"],
+        self::LOGJUNIT => ["--log-junit"],
+        self::OLDLOG => ["--old-log"],
+        self::OPTIONS => ["-o", "--phpunit-options"],
+        self::TMPDIR => ["--tmp-dir"],
+        self::DEBUG => ["--debug"],
+    ];
+
+    private $help = [
+        self::CONFIG => "Path to config file",
+        self::THREADS => "Threads count",
+        self::FILESINTHREAD => "Max files in one phpunit run",
+        self::SUITE => "Run a single suite",
+        self::FILE => "Run a single file",
+        self::LOGJUNIT => "Write log",
+        self::OLDLOG => "Use old log to opimize test balanser",
+        self::OPTIONS => "PHPUnit options",
+        self::HELP => "Displays this help",
+        self::TMPDIR => "Temp directory. If exists, tmp files are not deleted. Used for debug",
+        self::DEBUG => "Debug",
+    ];
+
     public function __construct(array $namedArgs) {
-
-        $configPath = $this->getConfigPath();
-        if (!$configPath) {
-            $configPath = getcwd() . "/phpunit.xml";
-            $namedArgs["-c"] = $configPath;
+        $this->configPath = $this->getConfigPath();
+        if (!$this->configPath) {
+            $this->configPath = getcwd() . "/phpunit.xml";
+            $namedArgs["-c"] = $this->configPath;
         }
-
         $this->params = $namedArgs;
-
-        if (!file_exists($configPath)) {
-            throw new Exception("config not found");
-        }
-
-        $this->config = new \DOMDocument();
-        $this->config->load($configPath);
-
         $this->root = getcwd() . "/";
+
+
+
     }
 
     /**
-     * @param array $list
+     * @param string $name
+     * @param $default
      * @return string
      */
-    private function getParamByList(array $list) {
-
+    private function getParamByList($name, $default = null) {
+        $list = $this->args[$name];
         foreach ($list as $key) {
             if (array_key_exists($key, $this->params)) {
                 return $this->params[$key];
             }
         }
-        if ($this->config) {
+        if ($config = $this->config) {
             foreach ($list as $key) {
-                $value = $this->config->documentElement->getAttribute($key);
+                $value = $config->documentElement->getAttribute($key);
                 if ($value) {
                     return $value;
                 }
             }
         }
 
-        return null;
+        return $default;
     }
 
-    public function addParam($key,$value){
+    public function addParam($key, $value) {
         $this->params[$key] = $value;
     }
 
     public function getSuites() {
-        return $this->config->getElementsByTagName("testsuites")->item(0);
+        return $this->getConfig()->getElementsByTagName("testsuites")->item(0);
     }
 
-    public function getConfig(){
+    private function loadConfig() {
+        if ($this->config === null) {
+            if (file_exists($this->configPath)) {
+                $this->config = new \DOMDocument();
+                $this->config->load($this->configPath);
+            } else {
+                $this->config = false;
+            }
+        }
+
         return $this->config;
     }
 
-    public function getRoot(){
+    public function getConfig() {
+        $config = $this->loadConfig();
+        if (!$config) {
+            throw new Exception("config not found in " . $this->configPath);
+        }
+
+        return $config;
+    }
+
+    public function getRoot() {
         return $this->root;
     }
 
-    private function getPath($path){
-        if(strpos("~",$path) == 0){
+    private function getPath($path) {
+        if (strpos("~", $path) == 0) {
             $path = str_replace("~", $_SERVER["HOME"], $path);
         }
+
         return $path;
     }
 
-    private function has($name){
-        return array_key_exists($name, $this->params);
+    /**
+     * @param $name
+     * @return bool
+     */
+    private function has($name) {
+        $list = $this->args[$name];
+        $exists = false;
+        foreach($list as $key){
+            $exists |= array_key_exists($key, $this->params);
+        }
+        return $exists;
     }
 
-    public function getTmp(){
-        return $this->getPath($this->getParamByList(["--tmp-dir"]));
+    public function displayHelp(){
+        echo "\n";
+        echo "Usage: threadunit [options]\n";
+        echo "Example: threadunit -t4 -f 5 --testsuite=Main\n";
+        echo "will lunch threadunit in 4 threads with 5 files per single run of phpunit\n";
+        echo "\n";
+        echo "Options:\n";
+        echo "\n";
+        $out = [];
+        $length = 0;
+        foreach($this->help as $name => $description){
+            $args = implode("|", array_slice($this->args[$name],0,2));
+            $out[] = [$args , $description];
+            $length = max($length, strlen($args));
+        }
+        foreach($out as $line){
+            list($arg, $desc) = $line;
+            echo "  " . $arg;
+            for($i=strlen($arg); $i < $length;$i++){
+                echo " ";
+            }
+            echo "    " . $desc . "\n";
+        }
+    }
+
+    public function getTmp() {
+        return $this->getPath($this->getParamByList(self::TMPDIR));
     }
 
     public function getConfigPath() {
-        return $this->getPath($this->getParamByList(["-c", "--configuration"]));
+        return $this->getPath($this->getParamByList(self::CONFIG));
     }
 
     public function getThreads() {
-        $count = $this->getParamByList(["-t", "--threads", "threads"]);
-        if(!$count){
-            $count = 1;
-        }
-        return $count;
+        return $this->getParamByList(self::THREADS, 1);
     }
 
     public function getFilePerThread() {
-        return $this->getParamByList(["-f", "--files-per-thread", "files-per-thread"]);
+        return $this->getParamByList(self::FILESINTHREAD);
     }
 
-    public function debug(){
-        return $this->getParamByList(["--debug"]) == "On";
+    public function debug() {
+        return $this->getParamByList(self::DEBUG) == "On";
     }
 
-    public function getTestSuite(){
-        return $this->getParamByList(["--testsuite",]);
+    public function getTestSuite() {
+        return $this->getParamByList(self::SUITE);
     }
 
-    public function getJlog(){
-        return $this->getPath($this->getParamByList(["--log-junit"]));
+    public function getJlog() {
+        return $this->getPath($this->getParamByList(self::LOGJUNIT));
     }
 
-    public function getOldLog(){
-        return $this->getPath($this->getParamByList(["--old-log"]));
+    public function getOldLog() {
+        return $this->getPath($this->getParamByList(self::OLDLOG));
     }
 
-    public function getFile(){
-        return $this->getPath($this->getParamByList(["--file"]));
+    public function getFile() {
+        return $this->getPath($this->getParamByList(self::FILE));
     }
 
-    public function hasFile(){
-        return $this->has("--file");
+    public function hasFile() {
+        return $this->has(self::FILE);
     }
 
-    public function getOptions(){
-        $this->getParamByList(["-o", "--phpunit-options"]);
+    public function getOptions() {
+        $this->getParamByList(self::OPTIONS);
     }
 
+    public function needHelp() {
+        return $this->has(self::HELP);
+    }
 
 
 }

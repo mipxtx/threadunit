@@ -12,6 +12,18 @@ namespace ThreadUnit;
  */
 class Worker
 {
+    const STATE_LUNCH = "lunch";
+
+    const STATE_OPEN = "open";
+
+    const STATE_READ = "read";
+
+    const STATE_CLOSE = "close";
+
+    const STATE_FINALIZE = "finalaze";
+
+    const STATE_SKIP = "skip";
+
     private $tests = [];
 
     private $params;
@@ -105,7 +117,7 @@ class Worker
 
     private $currentId = 0;
 
-    private $state = "lunch";
+    private $state = self::STATE_LUNCH;
 
     private $output = "";
 
@@ -116,7 +128,7 @@ class Worker
     public function lunch() {
 
         if (count($this->testPacks) == $this->currentId) {
-            $this->state = "skip";
+            $this->state = self::STATE_SKIP;
 
             return;
         }
@@ -147,7 +159,7 @@ class Worker
         $this->proc = proc_open($cmd, $descriptorspec, $this->pipes);
         fclose($this->pipes[0]);
 
-        $this->state = "open";
+        $this->state = self::STATE_OPEN;
     }
 
     public function open() {
@@ -161,18 +173,18 @@ class Worker
             }
 
             if (feof($this->pipes[1])) {
-                $this->state = "finalize";
+                $this->state = self::STATE_FINALIZE;
 
                 return;
             }
         } while ($count < 4);
         //$this->output = "";
-        $this->state = "read";
+        $this->state = self::STATE_READ;
     }
 
     public function read() {
         if (feof($this->pipes[1])) {
-            $this->state = "finalize";
+            $this->state = self::STATE_FINALIZE;
 
             return;
         }
@@ -182,20 +194,20 @@ class Worker
         if (in_array($char, [".", "S", "F", "E"])) {
             $this->testHub->notifyTest($char);
         } elseif ($this->lastChar == "F" && $char == "a") {
-            $this->state = "finalize";
+            $this->state = self::STATE_FINALIZE;
 
             return;
         }
 
         if ($this->lastChar === $char && $char === "\n") {
-            $this->state = "close";
+            $this->state = self::STATE_CLOSE;
         }
         $this->lastChar = $char;
     }
 
     public function close() {
         if (feof($this->pipes[1])) {
-            $this->state = "finalize";
+            $this->state = self::STATE_FINALIZE;
 
             return;
         }
@@ -248,7 +260,7 @@ class Worker
 
         $this->currentId++;
 
-        $this->state = "lunch";
+        $this->state = self::STATE_LUNCH;
     }
 
     public function generateFatalLog($file, $id, $out) {
@@ -256,19 +268,19 @@ class Worker
 
     public function tic() {
         switch ($this->state) {
-            case "lunch" :
+            case self::STATE_LUNCH :
                 $this->lunch();
                 break;
-            case "open" :
+            case self::STATE_OPEN :
                 $this->open();
                 break;
-            case "read" :
+            case self::STATE_READ :
                 $this->read();
                 break;
-            case "close" :
+            case self::STATE_CLOSE :
                 $this->close();
                 break;
-            case "finalize" :
+            case self::STATE_FINALIZE :
                 $this->finalize();
                 break;
         }
@@ -279,6 +291,6 @@ class Worker
     }
 
     public function done() {
-        return $this->state == "skip";
+        return $this->state == self::STATE_SKIP;
     }
 }

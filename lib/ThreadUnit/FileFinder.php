@@ -100,13 +100,16 @@ class FileFinder
             }
             if ($suffix) {
                 if (preg_match("/{$suffix}$/", $file)) {
-                    $out[] = $dir . "/" . $file;
+                    $out[] = $this->normalizePath($dir . "/" . $file);
                 }
             } else {
-                $out[] = $dir . "/" . $file;
+                $out[] = $this->normalizePath($dir . "/" . $file);
             }
         }
-
         return $out;
+    }
+
+    private function normalizePath($path){
+        return str_replace($this->params->getRoot(),"",realpath($this->params->getRoot() . "/" . $path));
     }
 }

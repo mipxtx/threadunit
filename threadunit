@@ -9,6 +9,7 @@ try {
     $exitCode = $app->run();
 } catch (Exception $e) {
     echo $e->getMessage() . "\n";
+    echo $e->getTraceAsString() . "\n";
     $exitCode = 1;
 }
 

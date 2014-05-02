@@ -154,7 +154,7 @@ class LogBuilder
                         if (!isset($totalSuites[$id][$param])) {
                             $totalSuites[$id][$param] = 0;
                         }
-                        $totalSuites[$id][$param] += $node->getAttribute($param);
+                        $totalSuites[$id][$param] += (float)$node->getAttribute($param);
                     }
                 }
             }
