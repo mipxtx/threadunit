@@ -256,7 +256,7 @@ class Worker
             $this->logFiles[] = $this->getLogPath($this->currentId);
         }
 
-        //unlink($this->getConfigPath($this->currentId));
+        unlink($this->getConfigPath($this->currentId));
 
         $this->currentId++;
 
