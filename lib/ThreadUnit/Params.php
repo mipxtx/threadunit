@@ -88,8 +88,6 @@ class Params
         $this->params = $namedArgs;
         $this->root = getcwd() . "/";
 
-
-
     }
 
     /**
@@ -213,7 +211,7 @@ class Params
     }
 
     public function debug() {
-        return $this->getParamByList(self::DEBUG) == "On";
+        return $this->has(self::DEBUG) && $this->getParamByList(self::DEBUG) != "Off";
     }
 
     public function getTestSuite() {

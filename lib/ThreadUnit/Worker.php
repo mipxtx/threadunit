@@ -142,12 +142,13 @@ class Worker
         $cmd = $this->lastCmd =
             "phpunit -c $path -d 'display_errors=On' --log-junit=" . $log;
 
-        //echo $cmd . "\n";
 
         if ($this->params->debug()) {
             $path2 = $this->params->getTmp() . "phpunit." . $this->threadId . "." . $id . ".xml ";
+
             $config->save($path2);
-            //echo "\n" . $cmd . "\n";
+            echo "\n" . $cmd . "\n";
+            echo "files: \n" . implode("\n", $pack = $this->testPacks[$id]) . "\n";
         }
 
         $descriptorspec = array(
@@ -256,7 +257,9 @@ class Worker
             $this->logFiles[] = $this->getLogPath($this->currentId);
         }
 
-        unlink($this->getConfigPath($this->currentId));
+        if(!$this->params->debug()){
+            unlink($this->getConfigPath($this->currentId));
+        }
 
         $this->currentId++;
 

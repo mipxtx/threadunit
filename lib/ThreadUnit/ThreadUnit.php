@@ -46,6 +46,7 @@ class ThreadUnit
                     if (strpos($arg, "=")) {
                         list($currentKey, $value) = explode("=", $arg);
                         $this->namedArgs[$currentKey] = $value;
+                        $currentKey = "";
                     } else {
                         $currentKey = $arg;
                     }
