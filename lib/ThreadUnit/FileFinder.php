@@ -23,7 +23,16 @@ class FileFinder
     }
 
     public function getSuiteIdByFile($file) {
-        return $this->fileMap[$file];
+        if(isset($this->fileMap[$file])){
+            return $this->fileMap[$file];
+        }else{
+            static $unknowns = [];
+            if(!in_array($file,$unknowns)){
+                echo "\nunknown test: $file";
+                $unknowns[] = $file;
+            }
+            return null;
+        }
     }
 
     public function getTestFiles($testSuite = null) {
@@ -52,7 +61,7 @@ class FileFinder
                 $this->suites[] = $suiteName;
                 $suiteId = count($this->suites) - 1;
                 $suiteFiles = [];
-
+                $exclude = [];
                 $items = $suite->childNodes;
                 for ($j = 0; $j < $items->length; $j++) {
                     /** @var \DOMDocument $item */
@@ -67,14 +76,33 @@ class FileFinder
                         } else {
                             $suiteFiles = array_merge($suiteFiles, $this->scanDir($dir));
                         }
+                    }elseif($item->nodeName == "exclude"){
+                        $excludeFile = trim($item->nodeValue);
+                        $exclude[] = $excludeFile;
                     }
                 }
 
-                foreach ($suiteFiles as $file) {
+                // perform exclude
+                $filteredFiles = [];
+                foreach($suiteFiles as $file){
+                    $doExclude = false;
+                    foreach($exclude as $exFile){
+                        if(strpos($file,$exFile) === 0 ){
+                            $doExclude = true;
+                            break;
+                        }
+                    }
+                    if(!$doExclude){
+                        $filteredFiles[] = $file;
+                    }
+                }
+
+
+                foreach ($filteredFiles as $file) {
                     $this->fileMap[$file] = $suiteId;
                 }
 
-                $tests = array_merge($tests, $suiteFiles);
+                $tests = array_merge($tests, $filteredFiles);
             }
         }
 

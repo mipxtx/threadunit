@@ -1,7 +1,22 @@
 #!/usr/bin/env php
 <?php
 
-require __DIR__ . "/../../autoload.php";
+$composer = __DIR__ . "/../../autoload.php";
+if (file_exists($composer)) {
+    // composer version
+    require $composer;
+} else {
+    // dev version
+    spl_autoload_register(
+        function ($class) {
+            $class = str_replace("\\", "/", $class);
+            $file = __DIR__ ."/lib/{$class}.php";
+            if (file_exists($file)) {
+                require $file;
+            }
+        }
+    );
+}
 
 $time = microtime(1);
 try {

@@ -63,8 +63,6 @@ class LogBuilder
         $this->echoErrors("error");
         $this->echoErrors("failure");
 
-        //failure
-
     }
 
     public function echoErrors($tag){
@@ -146,7 +144,12 @@ class LogBuilder
                     );
                     $id = $this->finder->getSuiteIdByFile($file);
                     $newNode = $out->importNode($node, true);
-                    $outSuite = $outSuites[$id];
+                    if(is_int($id)){
+                        $outSuite = $outSuites[$id];
+                    }else{
+                        $outSuite = $rootSuite;
+                    }
+
                     $br = $out->createTextNode("\n    ");
                     $outSuite->appendChild($br);
                     $outSuite->appendChild($newNode);

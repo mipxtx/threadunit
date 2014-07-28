@@ -18,7 +18,7 @@ class ThreadUnit
 
     private $listArgs;
 
-    const VERSION = "0.1";
+    const VERSION = "0.1.2";
 
     /**
      * @var Params
