@@ -77,7 +77,7 @@ class ThreadUnit
 
         exec("phpunit --version", $out, $exitCode);
         if ($exitCode) {
-            throw new Exception("phpunit not found");
+            throw new EnvironmentException("phpunit, that not found");
         }
 
         echo trim(implode("\n", $out)) . "\n";

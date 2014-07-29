@@ -87,7 +87,6 @@ class Params
         }
         $this->params = $namedArgs;
         $this->root = getcwd() . "/";
-
     }
 
     /**
@@ -138,7 +137,7 @@ class Params
     public function getConfig() {
         $config = $this->loadConfig();
         if (!$config) {
-            throw new Exception("config not found in " . $this->configPath);
+            throw new EnvironmentException("config not found in " . $this->configPath);
         }
 
         return $config;
@@ -163,13 +162,14 @@ class Params
     private function has($name) {
         $list = $this->args[$name];
         $exists = false;
-        foreach($list as $key){
+        foreach ($list as $key) {
             $exists |= array_key_exists($key, $this->params);
         }
+
         return $exists;
     }
 
-    public function displayHelp(){
+    public function displayHelp() {
         echo "\n";
         echo "Usage: threadunit [options]\n";
         echo "Example: threadunit -t4 -f 5 --testsuite=Main\n";
@@ -179,15 +179,15 @@ class Params
         echo "\n";
         $out = [];
         $length = 0;
-        foreach($this->help as $name => $description){
-            $args = implode("|", array_slice($this->args[$name],0,2));
-            $out[] = [$args , $description];
+        foreach ($this->help as $name => $description) {
+            $args = implode("|", array_slice($this->args[$name], 0, 2));
+            $out[] = [$args, $description];
             $length = max($length, strlen($args));
         }
-        foreach($out as $line){
+        foreach ($out as $line) {
             list($arg, $desc) = $line;
             echo "  " . $arg;
-            for($i=strlen($arg); $i < $length;$i++){
+            for ($i = strlen($arg); $i < $length; $i++) {
                 echo " ";
             }
             echo "    " . $desc . "\n";
@@ -241,6 +241,4 @@ class Params
     public function needHelp() {
         return $this->has(self::HELP);
     }
-
-
 }

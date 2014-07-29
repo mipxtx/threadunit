@@ -10,7 +10,7 @@ if (file_exists($composer)) {
     spl_autoload_register(
         function ($class) {
             $class = str_replace("\\", "/", $class);
-            $file = __DIR__ ."/lib/{$class}.php";
+            $file = __DIR__ . "/lib/{$class}.php";
             if (file_exists($file)) {
                 require $file;
             }
@@ -22,6 +22,9 @@ $time = microtime(1);
 try {
     $app = new \ThreadUnit\ThreadUnit($argv);
     $exitCode = $app->run();
+} catch (\ThreadUnit\EnvironmentException $e) {
+    echo $e->getMessage() . "\n";
+    $exitCode = 1;
 } catch (Exception $e) {
     echo $e->getMessage() . "\n";
     echo $e->getTraceAsString() . "\n";

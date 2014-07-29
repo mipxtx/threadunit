@@ -142,7 +142,6 @@ class Worker
         $cmd = $this->lastCmd =
             "phpunit -c $path -d 'display_errors=On' --log-junit=" . $log;
 
-
         if ($this->params->debug()) {
             $path2 = $this->params->getTmp() . "phpunit." . $this->threadId . "." . $id . ".xml ";
 
@@ -257,7 +256,7 @@ class Worker
             $this->logFiles[] = $this->getLogPath($this->currentId);
         }
 
-        if(!$this->params->debug()){
+        if (!$this->params->debug()) {
             unlink($this->getConfigPath($this->currentId));
         }
 

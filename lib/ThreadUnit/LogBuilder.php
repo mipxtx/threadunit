@@ -62,14 +62,13 @@ class LogBuilder
 
         $this->echoErrors("error");
         $this->echoErrors("failure");
-
     }
 
-    public function echoErrors($tag){
+    public function echoErrors($tag) {
 
         $errors = $this->getLog()->getElementsByTagName($tag);
         if ($errors->length > 0) {
-            echo "\n".ucfirst($tag) . "s:";
+            echo "\n" . ucfirst($tag) . "s:";
             for ($i = 0; $i < $errors->length; $i++) {
                 $node = $errors->item($i);
                 echo "\n#$i: " . trim($node->nodeValue) . "\n";
@@ -144,9 +143,9 @@ class LogBuilder
                     );
                     $id = $this->finder->getSuiteIdByFile($file);
                     $newNode = $out->importNode($node, true);
-                    if(is_int($id)){
+                    if (is_int($id)) {
                         $outSuite = $outSuites[$id];
-                    }else{
+                    } else {
                         $outSuite = $rootSuite;
                     }
 

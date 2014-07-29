@@ -23,20 +23,21 @@ class FileFinder
     }
 
     public function getSuiteIdByFile($file) {
-        if(isset($this->fileMap[$file])){
+        if (isset($this->fileMap[$file])) {
             return $this->fileMap[$file];
-        }else{
+        } else {
             static $unknowns = [];
-            if(!in_array($file,$unknowns)){
+            if (!in_array($file, $unknowns)) {
                 echo "\nunknown test: $file";
                 $unknowns[] = $file;
             }
+
             return null;
         }
     }
 
     public function getTestFiles($testSuite = null) {
-        if($this->params->hasFile()){
+        if ($this->params->hasFile()) {
             $file = $this->params->getFile();
             $tests = [$file];
             $this->fileMap[$file] = 0;
@@ -76,7 +77,7 @@ class FileFinder
                         } else {
                             $suiteFiles = array_merge($suiteFiles, $this->scanDir($dir));
                         }
-                    }elseif($item->nodeName == "exclude"){
+                    } elseif ($item->nodeName == "exclude") {
                         $excludeFile = trim($item->nodeValue);
                         $exclude[] = $excludeFile;
                     }
@@ -84,19 +85,18 @@ class FileFinder
 
                 // perform exclude
                 $filteredFiles = [];
-                foreach($suiteFiles as $file){
+                foreach ($suiteFiles as $file) {
                     $doExclude = false;
-                    foreach($exclude as $exFile){
-                        if(strpos($file,$exFile) === 0 ){
+                    foreach ($exclude as $exFile) {
+                        if (strpos($file, $exFile) === 0) {
                             $doExclude = true;
                             break;
                         }
                     }
-                    if(!$doExclude){
+                    if (!$doExclude) {
                         $filteredFiles[] = $file;
                     }
                 }
-
 
                 foreach ($filteredFiles as $file) {
                     $this->fileMap[$file] = $suiteId;
@@ -134,10 +134,11 @@ class FileFinder
                 $out[] = $this->normalizePath($dir . "/" . $file);
             }
         }
+
         return $out;
     }
 
-    private function normalizePath($path){
-        return str_replace($this->params->getRoot(),"",realpath($this->params->getRoot() . "/" . $path));
+    private function normalizePath($path) {
+        return str_replace($this->params->getRoot(), "", realpath($this->params->getRoot() . "/" . $path));
     }
 }

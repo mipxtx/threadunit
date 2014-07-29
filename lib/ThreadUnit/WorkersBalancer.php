@@ -37,58 +37,54 @@ class WorkersBalancer implements \Iterator, \Countable
         $this->map[$id] += $weight;
     }
 
-    public function getLogFiles(){
+    public function getLogFiles() {
         $out = [];
-        foreach($this->pack as $worker){
+        foreach ($this->pack as $worker) {
             $files = $worker->getLogFiles();
-            $out = array_merge($out,$files);
+            $out = array_merge($out, $files);
         }
 
         return $out;
     }
 
-    public function prepare(){
-        foreach($this->pack as $test){
+    public function prepare() {
+        foreach ($this->pack as $test) {
             $test->prepareTests();
         }
     }
 
-
-    public function tic(){
-        foreach($this->pack as $test){
-            if(!$test->done()){
+    public function tic() {
+        foreach ($this->pack as $test) {
+            if (!$test->done()) {
                 $test->tic();
             }
         }
     }
 
-    public function done(){
-        foreach($this->pack as $test){
-            if(!$test->done()){
+    public function done() {
+        foreach ($this->pack as $test) {
+            if (!$test->done()) {
                 return false;
             }
         }
+
         return true;
     }
 
-
-    public function output(){
-        foreach($this->pack as $test){
+    public function output() {
+        foreach ($this->pack as $test) {
             $test->output();
         }
     }
 
-
-    public function notifyTest($char){
-        static $count=0;
-        if($count % 65 == 0){
+    public function notifyTest($char) {
+        static $count = 0;
+        if ($count % 65 == 0) {
             echo "\n";
         }
         echo $char;
         $count++;
     }
-
-
 
     /**
      * @return Worker
@@ -112,7 +108,6 @@ class WorkersBalancer implements \Iterator, \Countable
     public function rewind() {
         $this->counter = 0;
     }
-
 
     public function count() {
         return count($this->map);
