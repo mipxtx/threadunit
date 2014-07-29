@@ -43,23 +43,18 @@ class LogBuilder
         return $this->log;
     }
 
-    public function echoStatus($threadsCount) {
+    public function echoStatus($threadsCount, $execTime) {
         /** @var \DOMElement $info */
         $info = $this->getLog()->getElementsByTagName("testsuite")->item(0);
-
         $desc = [];
-
-        echo "\nThreads: " . $threadsCount;
-        echo ", Time: " . round($info->getAttribute("time"), 2) . " seconds\n";
-
+        echo "\nThreads: $threadsCount, Test time: {$execTime} s";
         foreach ($this->logParams as $param) {
             $val = $info->getAttribute($param);
             if ($val) {
-                $desc[] = ucfirst($param) . ": " . $val;
+                $desc[] = ucfirst($param) . ": " . round($val, 2);
             }
         }
-        echo implode(", ", $desc) . "\n";
-
+        echo "\n" . implode(", ", $desc) . "\n";
         $this->echoErrors("error");
         $this->echoErrors("failure");
     }

@@ -40,28 +40,24 @@ class TestMap
         $files = $this->fileFinder->getTestFiles($this->params->getTestSuite());
         $oldLog = $this->params->getOldLog();
         if ($oldLog) {
-            $timings = $this->getTimings($oldLog);
-            $avgTime = 0;
-            foreach ($timings as $time) {
-                $avgTime += ($time / count($timings));
-            }
-            foreach ($files as $file) {
-                $fullName = realpath(dirname($this->params->getConfigPath()) . "/" . $file);
-                if (isset($timings[$fullName])) {
-                    $value = $timings[$fullName];
-                } else {
-                    $value = $avgTime;
+            $files = array_flip($files);
+            foreach ($this->getTimings($oldLog) as $filename => $weight) {
+                if (isset($files[$filename])) {
+                    $this->workers->addTest($filename, $weight);
+                    unset($files[$filename]);
                 }
-                $this->workers->addTest($file, $value);
+            }
+            foreach ($files as $filename) {
+                $this->workers->addTest($filename, 0);
             }
         } else {
             foreach ($files as $file) {
-                $this->workers->addTest($file, 1);
+                $this->workers->addTest($file, 0);
             }
         }
     }
 
-    private function getTimings($path) {
+    public function getTimings($path) {
         $d = new \DOMDocument();
         $d->load($path);
         $root = $d->getElementsByTagName("testsuite")->item(0);
@@ -73,11 +69,12 @@ class TestMap
                     /** @var \DOMElement $file */
                     $file = $suite->childNodes->item($j);
                     if ($file->nodeName == "testsuite" && $name = $file->getAttribute("file")) {
-                        $timings[$name] = $file->getAttribute("time");
+                        $timings[str_replace(getcwd() . DIRECTORY_SEPARATOR, "", $name)] = $file->getAttribute("time");
                     }
                 }
             }
         }
+        arsort($timings);
 
         return $timings;
     }

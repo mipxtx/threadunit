@@ -12,6 +12,8 @@ namespace ThreadUnit;
  */
 class WorkersBalancer implements \Iterator, \Countable
 {
+    const DOTS_PER_ROW = 65;
+
     /**
      * @var Worker[]
      */
@@ -20,6 +22,8 @@ class WorkersBalancer implements \Iterator, \Countable
     private $map = [];
 
     private $counter = 0;
+
+    private $zeroCount = 0;
 
     public function __construct(Params $params) {
         $threadsCount = $params->getThreads();
@@ -30,11 +34,17 @@ class WorkersBalancer implements \Iterator, \Countable
     }
 
     public function addTest($name, $weight) {
-        asort($this->map);
-        reset($this->map);
-        list($id) = each($this->map);
-        $this->pack[$id]->addTest($name, $weight);
-        $this->map[$id] += $weight;
+        if (!$weight) {
+            $id = $this->zeroCount % $this->count();
+            $this->pack[$id]->addTest($name, 0);
+            $this->zeroCount++;
+        } else {
+            asort($this->map);
+            reset($this->map);
+            list($id) = each($this->map);
+            $this->pack[$id]->addTest($name, $weight);
+            $this->map[$id] += $weight;
+        }
     }
 
     public function getLogFiles() {
@@ -79,7 +89,7 @@ class WorkersBalancer implements \Iterator, \Countable
 
     public function notifyTest($char) {
         static $count = 0;
-        if ($count % 65 == 0) {
+        if ($count % self::DOTS_PER_ROW == 0) {
             echo "\n";
         }
         echo $char;
@@ -111,5 +121,11 @@ class WorkersBalancer implements \Iterator, \Countable
 
     public function count() {
         return count($this->map);
+    }
+
+    public function debug() {
+        foreach ($this->pack as $worker) {
+            $worker->debug();
+        }
     }
 }

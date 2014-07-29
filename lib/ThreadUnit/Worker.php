@@ -295,4 +295,12 @@ class Worker
     public function done() {
         return $this->state == self::STATE_SKIP;
     }
+
+    public function debug() {
+        $sum = 0;
+        foreach ($this->tests as $test => $weight) {
+            $sum += $weight;
+        }
+        echo "Total: $sum\n";
+    }
 }

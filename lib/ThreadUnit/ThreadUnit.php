@@ -18,7 +18,7 @@ class ThreadUnit
 
     private $listArgs;
 
-    const VERSION = "0.1.2";
+    const VERSION = "0.2";
 
     /**
      * @var Params
@@ -90,16 +90,18 @@ class ThreadUnit
         $testMap = new TestMap($this->params);
         $tests = $testMap->getWorkers();
         $tests->prepare();
+        $startTime = microtime(1);
         do {
             $tests->tic();
         } while (!$tests->done());
+        $execTime = round(microtime(1) - $startTime, 2);
         $pidCount = count($tests);
         $log = $testMap->getLogBuilder();
         $logPath = $this->params->getJlog();
         if ($logPath) {
             $log->save($logPath);
         }
-        $log->echoStatus($pidCount);
+        $log->echoStatus($pidCount, $execTime);
 
         return $log->getExitStatus();
     }
